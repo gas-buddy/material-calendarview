@@ -1,18 +1,26 @@
 package com.prolificinteractive.materialcalendarview.sample;
 
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
+import com.prolificinteractive.materialcalendarview.DayViewDecorator;
+import com.prolificinteractive.materialcalendarview.DayViewFacade;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 import com.prolificinteractive.materialcalendarview.OnMonthChangedListener;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,11 +32,8 @@ public class BasicActivity extends AppCompatActivity implements OnDateSelectedLi
 
     private static final DateFormat FORMATTER = SimpleDateFormat.getDateInstance();
 
-    @BindView(R.id.calendarView)
-    MaterialCalendarView widget;
-
-    @BindView(R.id.textView)
-    TextView textView;
+    @BindView(R.id.calendarView) MaterialCalendarView materialCalendarView;
+    @BindView(R.id.textView) TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +41,14 @@ public class BasicActivity extends AppCompatActivity implements OnDateSelectedLi
         setContentView(R.layout.activity_basic);
         ButterKnife.bind(this);
 
-        widget.setOnDateChangedListener(this);
-        widget.setOnMonthChangedListener(this);
+        materialCalendarView.setShowOtherDates(MaterialCalendarView.SHOW_OUT_OF_RANGE);
+        materialCalendarView.setOnDateChangedListener(this);
+        materialCalendarView.setOnMonthChangedListener(this);
+        materialCalendarView.addDecorator(new TodayDecorator());
+        materialCalendarView.state().edit()
+                .setMaximumDate(CalendarDay.today())
+                .setMinimumDate(CalendarDay.from(2000, 1, 1))
+                .commit();
 
         //Setup initial text
         textView.setText(getSelectedDatesString());
@@ -55,10 +66,28 @@ public class BasicActivity extends AppCompatActivity implements OnDateSelectedLi
     }
 
     private String getSelectedDatesString() {
-        CalendarDay date = widget.getSelectedDate();
+        CalendarDay date = materialCalendarView.getSelectedDate();
         if (date == null) {
             return "No Selection";
         }
         return FORMATTER.format(date.getDate());
+    }
+
+    private class TodayDecorator implements DayViewDecorator {
+        private final CalendarDay today;
+
+        public TodayDecorator() {
+            today = CalendarDay.today();
+        }
+
+        @Override
+        public boolean shouldDecorate(CalendarDay day) {
+            return today.equals(day);
+        }
+
+        @Override
+        public void decorate(DayViewFacade view) {
+            view.setUnselectedCircleColor(Color.parseColor("#f0f0f0"));
+        }
     }
 }

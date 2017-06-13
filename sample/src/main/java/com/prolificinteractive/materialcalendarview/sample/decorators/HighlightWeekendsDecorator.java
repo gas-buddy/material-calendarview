@@ -32,6 +32,7 @@ public class HighlightWeekendsDecorator implements DayViewDecorator {
 
     @Override
     public void decorate(DayViewFacade view) {
-        view.setBackgroundDrawable(highlightDrawable);
+        view.setUnselectedCircleColor(Color.parseColor("#ff00ff"));
+
     }
 }

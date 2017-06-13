@@ -1,6 +1,7 @@
 package com.prolificinteractive.materialcalendarview.sample;
 
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -111,7 +112,8 @@ public class CustomTileDimensions extends AppCompatActivity {
 
     @Override
     public void decorate(DayViewFacade view) {
-      view.setBackgroundDrawable(backgroundDrawable);
+      view.setUnselectedCircleColor(Color.parseColor("#ff00ff"));
+
     }
   }
 }

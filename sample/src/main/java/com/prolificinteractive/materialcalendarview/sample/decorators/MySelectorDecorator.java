@@ -1,6 +1,7 @@
 package com.prolificinteractive.materialcalendarview.sample.decorators;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
@@ -26,6 +27,6 @@ public class MySelectorDecorator implements DayViewDecorator {
 
     @Override
     public void decorate(DayViewFacade view) {
-        view.setSelectionDrawable(drawable);
+        view.setUnselectedCircleColor(Color.parseColor("#ff00ff"));
     }
 }

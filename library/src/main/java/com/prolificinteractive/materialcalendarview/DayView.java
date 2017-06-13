@@ -39,16 +39,18 @@ class DayView extends CheckedTextView {
     private int selectionColor = Color.GRAY;
 
     private final int fadeTime;
-    private Drawable customBackground = null;
-    private Drawable selectionDrawable;
-    private Drawable mCircleDrawable;
+    private Drawable unselectedCircleDrawable;
+    private Drawable selectedCircleDrawable;
     private DayFormatter formatter = DayFormatter.DEFAULT;
 
     private boolean isInRange = true;
     private boolean isInMonth = true;
     private boolean isDecoratedDisabled = false;
-    @ShowOtherDates
-    private int showOtherDates = MaterialCalendarView.SHOW_DEFAULTS;
+    private boolean isUnselectedBackgroundEnabled = true;
+    @ShowOtherDates private int showOtherDates = MaterialCalendarView.SHOW_DEFAULTS;
+
+    private final Rect tempRect = new Rect();
+    private final Rect circleDrawableRect = new Rect();
 
     public DayView(Context context, CalendarDay day) {
         super(context);
@@ -99,31 +101,11 @@ class DayView extends CheckedTextView {
 
     public void setSelectionColor(int color) {
         this.selectionColor = color;
-        regenerateBackground();
+        regenerateSelectedCircle();
     }
 
-    /**
-     * @param drawable custom selection drawable
-     */
-    public void setSelectionDrawable(Drawable drawable) {
-        if (drawable == null) {
-            this.selectionDrawable = null;
-        } else {
-            this.selectionDrawable = drawable.getConstantState().newDrawable(getResources());
-        }
-        regenerateBackground();
-    }
-
-    /**
-     * @param drawable background to draw behind everything else
-     */
-    public void setCustomBackground(Drawable drawable) {
-        if (drawable == null) {
-            this.customBackground = null;
-        } else {
-            this.customBackground = drawable.getConstantState().newDrawable(getResources());
-        }
-        invalidate();
+    public void setUnselectedColor(int unselectedColor) {
+        unselectedCircleDrawable = generateUnselectedCircle(unselectedColor, fadeTime, circleDrawableRect);
     }
 
     public CalendarDay getDate() {
@@ -166,32 +148,25 @@ class DayView extends CheckedTextView {
         setEnabled();
     }
 
-    private final Rect tempRect = new Rect();
-    private final Rect circleDrawableRect = new Rect();
-
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
-        if (customBackground != null) {
-            customBackground.setBounds(tempRect);
-            customBackground.setState(getDrawableState());
-            customBackground.draw(canvas);
+        if (unselectedCircleDrawable != null && isUnselectedBackgroundEnabled) {
+            unselectedCircleDrawable.setBounds(circleDrawableRect);
+            unselectedCircleDrawable.setState(getDrawableState());
+            unselectedCircleDrawable.draw(canvas);
         }
 
-        mCircleDrawable.setBounds(circleDrawableRect);
+        selectedCircleDrawable.setBounds(circleDrawableRect);
 
         super.onDraw(canvas);
     }
 
-    private void regenerateBackground() {
-        if (selectionDrawable != null) {
-            setBackgroundDrawable(selectionDrawable);
-        } else {
-            mCircleDrawable = generateBackground(selectionColor, fadeTime, circleDrawableRect);
-            setBackgroundDrawable(mCircleDrawable);
-        }
+    private void regenerateSelectedCircle() {
+        selectedCircleDrawable = generateSelectedCircle(selectionColor, fadeTime, circleDrawableRect);
+        setBackgroundDrawable(selectedCircleDrawable);
     }
 
-    private static Drawable generateBackground(int color, int fadeTime, Rect bounds) {
+    private static Drawable generateSelectedCircle(int color, int fadeTime, Rect bounds) {
         StateListDrawable drawable = new StateListDrawable();
         drawable.setExitFadeDuration(fadeTime);
         drawable.addState(new int[]{android.R.attr.state_checked}, generateCircleDrawable(color));
@@ -206,10 +181,31 @@ class DayView extends CheckedTextView {
         return drawable;
     }
 
+    private static Drawable generateUnselectedCircle(int color, int fadeTime, Rect bounds) {
+        StateListDrawable drawable = new StateListDrawable();
+        drawable.setExitFadeDuration(fadeTime);
+        drawable.addState(new int[]{android.R.attr.state_checked}, generateCircleDrawable(color));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            drawable.addState(new int[]{android.R.attr.state_pressed}, generateRippleDrawable(color, bounds));
+        } else {
+            drawable.addState(new int[]{android.R.attr.state_pressed}, generateCircleDrawable(color));
+        }
+
+        drawable.addState(new int[]{}, generateCircleDrawable(color));
+
+        return drawable;
+    }
+
     private static Drawable generateCircleDrawable(final int color) {
         ShapeDrawable drawable = new ShapeDrawable(new OvalShape());
         drawable.getPaint().setColor(color);
         return drawable;
+    }
+
+    @Override
+    public void setChecked(boolean checked) {
+        super.setChecked(checked);
+        isUnselectedBackgroundEnabled = !checked;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -238,8 +234,7 @@ class DayView extends CheckedTextView {
         this.isDecoratedDisabled = facade.areDaysDisabled();
         setEnabled();
 
-        setCustomBackground(facade.getBackgroundDrawable());
-        setSelectionDrawable(facade.getSelectionDrawable());
+        setUnselectedColor(facade.getUnselectedCircleColor());
 
         // Facade has spans
         List<DayViewFacade.Span> spans = facade.getSpans();
@@ -261,7 +256,7 @@ class DayView extends CheckedTextView {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         calculateBounds(right - left, bottom - top);
-        regenerateBackground();
+        regenerateSelectedCircle();
     }
 
     private void calculateBounds(int width, int height) {
