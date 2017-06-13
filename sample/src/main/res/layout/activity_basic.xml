@@ -16,7 +16,9 @@
         android:id="@+id/calendarView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:mcv_weekDayLabels="@array/custom_weekdays"
         app:mcv_titleAnimationOrientation="horizontal"
+        app:mcv_arrowColor="#0097a9"
         app:mcv_dateTextAppearance="@style/CustomDayTextAppearance"
         />
 
