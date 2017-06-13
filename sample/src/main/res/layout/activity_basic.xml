@@ -19,7 +19,10 @@
         app:mcv_weekDayLabels="@array/custom_weekdays"
         app:mcv_titleAnimationOrientation="horizontal"
         app:mcv_arrowColor="#0097a9"
-        app:mcv_dateTextAppearance="@style/CustomDayTextAppearance"
+        app:mcv_dateTextAppearance="@style/DayTextAppearance"
+        app:mcv_headerTextAppearance="@style/MonthTextAppearance"
+        app:mcv_weekDayTextAppearance="@style/DayOfWeekTextAppearance"
+        app:mcv_selectionColor="#0097a9"
         />
 
     <TextView
